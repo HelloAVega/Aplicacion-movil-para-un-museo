@@ -49,7 +49,7 @@ function buildCard(img) {
         <div class="card-field"><strong>Autor:</strong> ${escapeHtml(img.author)}</div>
         <div class="card-field"><strong>Fecha:</strong> ${escapeHtml(img.date)}</div>
         <div class="stars">${starsSVG(rating)}</div>
-        <p class="card-description">Descripción : Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        <p class="card-description">Descripción: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
       </div>
     </div>`;
 }
