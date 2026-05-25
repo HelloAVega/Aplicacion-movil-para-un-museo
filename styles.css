@@ -52,6 +52,7 @@ html, body {
   inset: 0;
   display: none;
   flex-direction: column;
+  min-height: 0;
   background: var(--clr-bg);
   overflow: hidden;
   transition: opacity var(--transition);
@@ -239,6 +240,10 @@ html, body {
 ════════════════════════════════════════════ */
 .bottom-nav {
   height: var(--nav-h);
+  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -287,6 +292,13 @@ html, body {
   display: none;
 }
 #screen-upload.active { display: flex; }
+
+.upload-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
 .upload-area {
   margin: 16px;

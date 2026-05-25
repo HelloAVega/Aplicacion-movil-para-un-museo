@@ -50,28 +50,30 @@
       </button>
     </div>
 
-    <div class="upload-area" id="upload-drop-zone">
-      <input id="file-input" type="file" accept="image/*" capture="environment" hidden />
-      <div class="upload-placeholder" id="upload-placeholder">
-        <div class="upload-icons">
-          <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+    <div class="upload-content">
+      <div class="upload-area" id="upload-drop-zone">
+        <input id="file-input" type="file" accept="image/*" capture="environment" hidden />
+        <div class="upload-placeholder" id="upload-placeholder">
+          <div class="upload-icons">
+            <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+          </div>
+          <p class="upload-label">Escanear Imagen</p>
         </div>
-        <p class="upload-label">Escanear Imagen</p>
+        <img id="preview-img" class="preview-img hidden" alt="Vista previa" />
       </div>
-      <img id="preview-img" class="preview-img hidden" alt="Vista previa" />
-    </div>
 
-    <div class="form-section">
-      <div class="form-group">
-        <label class="form-label">Nombre de la obra:</label>
-        <input id="inp-artwork" class="form-input" type="text" placeholder="Escribe aquí el nombre de la obra" />
+      <div class="form-section">
+        <div class="form-group">
+          <label class="form-label">Nombre de la obra:</label>
+          <input id="inp-artwork" class="form-input" type="text" placeholder="Escribe aquí el nombre de la obra" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Autor:</label>
+          <input id="inp-author" class="form-input" type="text" placeholder="Escribe aquí el autor de la obra" />
+        </div>
+        <button id="btn-upload" class="btn-primary">Subir Imagen</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Autor:</label>
-        <input id="inp-author" class="form-input" type="text" placeholder="Escribe aquí el autor de la obra" />
-      </div>
-      <button id="btn-upload" class="btn-primary">Subir Imagen</button>
     </div>
 
     <!-- Confirmación imagen subida -->

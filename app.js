@@ -3,17 +3,37 @@
 ════════════════════════════════════════════ */
 'use strict';
 
-// ── State ─────────────────────────────────
+// ── API & State ───────────────────────────
+const API_BASE = '/api';
+const STORAGE_USER_ID = 'museo_user_id';
+
 const state = {
-  user:   JSON.parse(localStorage.getItem('museo_user')   || 'null'),
-  images: JSON.parse(localStorage.getItem('museo_images') || '[]'),
+  user: null,
+  images: [],
   dark:   localStorage.getItem('museo_dark') === 'true',
 };
 
+async function api(path, options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.error || 'Error de comunicación con el servidor');
+  }
+  return payload;
+}
+
 // ── Helpers ───────────────────────────────
-function save() {
-  localStorage.setItem('museo_user',   JSON.stringify(state.user));
-  localStorage.setItem('museo_images', JSON.stringify(state.images));
+function saveClientState() {
+  if (state.user?.id) {
+    localStorage.setItem(STORAGE_USER_ID, state.user.id);
+  }
   localStorage.setItem('museo_dark',   state.dark);
 }
 
@@ -69,12 +89,12 @@ function applyTheme() {
 
 function toggleTheme() {
   state.dark = !state.dark;
-  save();
+  saveClientState();
   applyTheme();
 }
 
 // ── Navigation ────────────────────────────
-function showScreen(id) {
+async function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const target = document.getElementById(id);
   if (target) target.classList.add('active');
@@ -84,8 +104,17 @@ function showScreen(id) {
     btn.classList.toggle('active', btn.dataset.screen === id);
   });
 
-  if (id === 'screen-gallery')  renderGallery();
+  if (id === 'screen-gallery') {
+    await refreshImages();
+    renderGallery();
+  }
   if (id === 'screen-account')  renderAccount();
+}
+
+async function refreshImages() {
+  const userId = state.user?.id || '';
+  const data = await api(`/images?userId=${encodeURIComponent(userId)}`);
+  state.images = data.images || [];
 }
 
 // ── Render helpers ────────────────────────
@@ -103,8 +132,8 @@ function renderAvatars() {
 function renderGallery() {
   const myEl    = document.getElementById('my-images');
   const otherEl = document.getElementById('other-images');
-  const myImgs  = state.images.filter(i => i.owner === state.user?.name);
-  const others  = state.images.filter(i => i.owner !== state.user?.name);
+  const myImgs  = state.images.filter(i => i.ownerId === state.user?.id);
+  const others  = state.images.filter(i => i.ownerId !== state.user?.id);
 
   myEl.innerHTML    = myImgs.length  ? myImgs.map(buildCard).join('')  : '<p class="empty-msg">Aún no has subido imágenes.</p>';
   otherEl.innerHTML = others.length  ? others.map(buildCard).join('') : '<p class="empty-msg">No hay imágenes de otros usuarios.</p>';
@@ -118,7 +147,7 @@ function renderAccount() {
 // ── Screen 1 · Registration ───────────────
 function setupWelcome() {
   const btnEnter = document.getElementById('btn-enter');
-  btnEnter.addEventListener('click', () => {
+  btnEnter.addEventListener('click', async () => {
     const nameEl   = document.getElementById('inp-name');
     const ageEl    = document.getElementById('inp-age');
 
@@ -129,14 +158,26 @@ function setupWelcome() {
     });
     if (!valid) return;
 
-    state.user = {
-      name:   nameEl.value.trim(),
-      age:    ageEl.value.trim(),
-      course: document.getElementById('inp-course').value.trim(),
-    };
-    save();
-    renderAvatars();
-    showScreen('screen-upload');
+    btnEnter.disabled = true;
+    try {
+      const response = await api('/users/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          name:   nameEl.value.trim(),
+          age:    ageEl.value.trim(),
+          course: document.getElementById('inp-course').value.trim(),
+        }),
+      });
+
+      state.user = response.user;
+      saveClientState();
+      renderAvatars();
+      await showScreen('screen-upload');
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      btnEnter.disabled = false;
+    }
   });
 
   // Remove error class on input
@@ -157,20 +198,29 @@ function setupUpload() {
 
   let selectedDataUrl = null;
 
-  // Open file picker on click
-  dropZone.addEventListener('click', () => fileInput.click());
-
-  fileInput.addEventListener('change', () => {
-    const file = fileInput.files[0];
+  function processSelectedFile(file) {
     if (!file) return;
+    if (!file.type || !file.type.startsWith('image/')) {
+      alert('Solo se permiten archivos de imagen.');
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = e => {
       selectedDataUrl = e.target.result;
       previewImg.src = selectedDataUrl;
       previewImg.classList.remove('hidden');
       placeholder.classList.add('hidden');
+      dropZone.style.borderColor = '';
     };
     reader.readAsDataURL(file);
+  }
+
+  // Open file picker on click
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', () => {
+    processSelectedFile(fileInput.files[0]);
   });
 
   // Drag & drop
@@ -180,13 +230,10 @@ function setupUpload() {
     e.preventDefault();
     dropZone.style.borderColor = '';
     const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      fileInput.files = e.dataTransfer.files;
-      fileInput.dispatchEvent(new Event('change'));
-    }
+    processSelectedFile(file);
   });
 
-  btnUpload.addEventListener('click', () => {
+  btnUpload.addEventListener('click', async () => {
     const artworkEl = document.getElementById('inp-artwork');
     const authorEl  = document.getElementById('inp-author');
 
@@ -195,26 +242,40 @@ function setupUpload() {
       el.classList.remove('error');
       if (!el.value.trim()) { el.classList.add('error'); valid = false; }
     });
+    if (!selectedDataUrl) {
+      valid = false;
+      dropZone.style.borderColor = 'var(--clr-error)';
+      alert('Selecciona una imagen antes de subirla.');
+    }
     if (!valid) return;
 
-    const newImage = {
-      id:      Date.now(),
-      artwork: artworkEl.value.trim(),
-      author:  authorEl.value.trim(),
-      date:    today(),
-      owner:   state.user?.name || 'User',
-      dataUrl: selectedDataUrl,
-      rating:  randomRating(),
-    };
+    btnUpload.disabled = true;
+    try {
+      const response = await api('/images', {
+        method: 'POST',
+        body: JSON.stringify({
+          ownerId: state.user?.id,
+          artwork: artworkEl.value.trim(),
+          author: authorEl.value.trim(),
+          dataUrl: selectedDataUrl,
+          date: today(),
+          rating: randomRating(),
+        }),
+      });
 
-    state.images.unshift(newImage);
-    save();
+      if (response.image) {
+        state.images.unshift(response.image);
+      }
 
-    // Show success modal
-    successModal.classList.remove('hidden');
+      successModal.classList.remove('hidden');
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      btnUpload.disabled = false;
+    }
   });
 
-  btnAccept.addEventListener('click', () => {
+  btnAccept.addEventListener('click', async () => {
     successModal.classList.add('hidden');
     // Reset form
     document.getElementById('inp-artwork').value = '';
@@ -223,19 +284,27 @@ function setupUpload() {
     selectedDataUrl = null;
     previewImg.classList.add('hidden');
     placeholder.classList.remove('hidden');
-    showScreen('screen-gallery');
+    await showScreen('screen-gallery');
   });
 }
 
 // ── Screen 4 · Account ────────────────────
 function setupAccount() {
-  document.getElementById('btn-edit-account').addEventListener('click', () => {
+  document.getElementById('btn-edit-account').addEventListener('click', async () => {
     const newName = prompt('Editar nombre:', state.user?.name || '');
     if (newName !== null && newName.trim()) {
-      state.user.name = newName.trim();
-      save();
-      renderAvatars();
-      renderAccount();
+      try {
+        const response = await api(`/users/${encodeURIComponent(state.user.id)}`, {
+          method: 'PUT',
+          body: JSON.stringify({ name: newName.trim() }),
+        });
+        state.user = response.user;
+        saveClientState();
+        renderAvatars();
+        renderAccount();
+      } catch (error) {
+        alert(error.message);
+      }
     }
   });
 }
@@ -250,41 +319,41 @@ function setupThemeButtons() {
 // ── Nav buttons ───────────────────────────
 function setupNav() {
   document.querySelectorAll('.nav-btn[data-screen]').forEach(btn => {
-    btn.addEventListener('click', () => showScreen(btn.dataset.screen));
+    btn.addEventListener('click', () => {
+      showScreen(btn.dataset.screen).catch(error => alert(error.message));
+    });
   });
 }
 
-// ── Sample "other users" data ─────────────
-function seedSampleData() {
-  const key = 'museo_seeded';
-  if (localStorage.getItem(key)) return;
-  const samples = [
-    { id: 1001, artwork: 'Amanecer en el Caribe', author: 'María González', date: '24/04/2026', owner: 'OtroUsuario', dataUrl: null, rating: 5 },
-    { id: 1002, artwork: 'Abstracción Urbana',    author: 'Carlos Pérez',   date: '24/04/2026', owner: 'OtroUsuario', dataUrl: null, rating: 4 },
-    { id: 1003, artwork: 'Luz y Sombra',          author: 'Ana Martínez',   date: '25/04/2026', owner: 'OtroUsuario2', dataUrl: null, rating: 5 },
-  ];
-  state.images.push(...samples);
-  save();
-  localStorage.setItem(key, '1');
-}
-
 // ── Boot ──────────────────────────────────
-function init() {
+async function init() {
   applyTheme();
-  seedSampleData();
   setupWelcome();
   setupUpload();
   setupAccount();
   setupThemeButtons();
   setupNav();
 
+  const storedUserId = localStorage.getItem(STORAGE_USER_ID);
+
+  try {
+    const data = await api(`/bootstrap?userId=${encodeURIComponent(storedUserId || '')}`);
+    state.user = data.user;
+    state.images = data.images || [];
+  } catch (error) {
+    alert(error.message);
+  }
+
   // If user already registered, skip welcome
   if (state.user) {
     renderAvatars();
-    showScreen('screen-upload');
+    await showScreen('screen-upload');
   } else {
-    showScreen('screen-welcome');
+    localStorage.removeItem(STORAGE_USER_ID);
+    await showScreen('screen-welcome');
   }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init().catch(error => alert(error.message));
+});
