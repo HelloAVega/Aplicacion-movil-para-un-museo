@@ -1,5 +1,0 @@
-Django>=4.2
-djangorestframework>=3.14
-djangorestframework-simplejwt>=2.8
-Pillow>=9.0
-python-dotenv>=1.0.0
