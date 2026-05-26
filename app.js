@@ -70,10 +70,25 @@ function heartHTML(image) {
     </div>`;
 }
 
+function imageDetailHTML(image) {
+  const description = image.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+  return `
+    <div class="detail-preview">
+      <img class="detail-image" src="${image.dataUrl}" alt="${escapeHtml(image.artwork)}" />
+    </div>
+    <div class="detail-info">
+      <h2 class="detail-title">${escapeHtml(image.artwork)}</h2>
+      <div class="detail-meta"><strong>Autor:</strong> ${escapeHtml(image.author)}</div>
+      <div class="detail-meta"><strong>Fecha:</strong> ${escapeHtml(image.date)}</div>
+      <div class="detail-hearts">${heartHTML(image)}</div>
+      <p class="detail-description">${escapeHtml(description)}</p>
+    </div>`;
+}
+
 function buildCard(img) {
   const description = img.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
   const thumb  = img.dataUrl
-    ? `<img class="card-thumb" src="${img.dataUrl}" alt="${img.artwork}" />`
+    ? `<button type="button" class="card-thumb-btn" data-image-id="${escapeHtml(img.id)}" aria-label="Ver ${escapeHtml(img.artwork)} en grande"><img class="card-thumb" src="${img.dataUrl}" alt="${img.artwork}" /></button>`
     : `<div class="card-thumb"></div>`;
 
   return `
@@ -321,11 +336,54 @@ function setupImageRatings() {
       if (response.image) {
         state.images = state.images.map(image => (image.id === response.image.id ? response.image : image));
         renderGallery();
+
+        const modal = document.getElementById('image-detail-modal');
+        const modalContent = document.getElementById('image-detail-content');
+        if (modal && !modal.classList.contains('hidden') && modal.dataset.imageId === response.image.id) {
+          modalContent.innerHTML = imageDetailHTML(response.image);
+        }
       }
     } catch (error) {
       alert(error.message);
     } finally {
       button.disabled = false;
+    }
+  });
+}
+
+function setupImageDetails() {
+  const modal = document.getElementById('image-detail-modal');
+  const modalContent = document.getElementById('image-detail-content');
+  const modalClose = document.getElementById('btn-close-image-detail');
+
+  function closeModal() {
+    modal?.classList.add('hidden');
+    modal?.setAttribute('aria-hidden', 'true');
+    modalContent.innerHTML = '';
+  }
+
+  document.addEventListener('click', event => {
+    const trigger = event.target.closest('.card-thumb-btn');
+    if (!trigger) return;
+
+    const imageId = trigger.dataset.imageId;
+    const image = state.images.find(item => item.id === imageId);
+    if (!image || !image.dataUrl) return;
+
+    modalContent.innerHTML = imageDetailHTML(image);
+    modal.dataset.imageId = image.id;
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+  });
+
+  modalClose?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', event => {
+    if (event.target === modal) closeModal();
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !modal?.classList.contains('hidden')) {
+      closeModal();
     }
   });
 }
@@ -374,6 +432,7 @@ async function init() {
   setupUpload();
   setupAccount();
   setupImageRatings();
+  setupImageDetails();
   setupThemeButtons();
   setupNav();
 
