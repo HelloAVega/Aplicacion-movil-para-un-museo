@@ -7,6 +7,7 @@
   --clr-primary:    #2E7D6C;
   --clr-primary-dk: #236158;
   --clr-primary-lt: #E8F5F2;
+  --clr-heart:      #D32F2F;
   --clr-bg:         #F4F7F6;
   --clr-surface:    #FFFFFF;
   --clr-border:     #D8E2E0;
@@ -118,6 +119,11 @@ html, body {
   font-size: .9375rem;
   outline: none;
   transition: border-color var(--transition), box-shadow var(--transition);
+}
+textarea.form-input {
+  min-height: 92px;
+  resize: vertical;
+  line-height: 1.4;
 }
 .form-input::placeholder { color: var(--clr-text-soft); }
 .form-input:focus {
@@ -480,17 +486,55 @@ html, body {
 
 .card-field strong { font-weight: 600; }
 
-.stars {
+.hearts {
   display: flex;
-  gap: 2px;
-  margin: 4px 0;
+  flex-direction: row;
+  gap: 6px;
+  margin: 4px 0 2px;
+  align-items: center;
 }
 
-.star {
-  width: 14px;
-  height: 14px;
-  color: var(--clr-star);
-  fill: var(--clr-star);
+.heart-btn {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--clr-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  line-height: 0;
+  transition: transform var(--transition), color var(--transition), opacity var(--transition);
+}
+
+.heart-btn:hover {
+  transform: translateY(-1px) scale(1.05);
+  color: var(--clr-heart);
+}
+
+.heart-btn.active {
+  color: var(--clr-heart);
+}
+
+.heart-btn:disabled {
+  cursor: wait;
+  opacity: .7;
+}
+
+.heart-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.heart-count {
+  font-size: .75rem;
+  color: var(--clr-text-soft);
+  line-height: 1;
 }
 
 .card-description {

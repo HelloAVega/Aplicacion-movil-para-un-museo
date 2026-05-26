@@ -46,17 +46,32 @@ function today() {
   return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
 }
 
-function randomRating() {
-  return Math.floor(Math.random() * 2) + 4; // 4–5 stars
+function heartSVG(filled) {
+  return filled
+    ? `<svg class="heart-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
+    : `<svg class="heart-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>`;
 }
 
-function starsSVG(count) {
-  const star = `<svg class="star" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>`;
-  return Array(count).fill(star).join('');
+function heartHTML(image) {
+  const heartsCount = Number(image.heartsCount) || 0;
+  const viewerHasHeart = Boolean(image.viewerHasHeart);
+  const ariaLabel = viewerHasHeart ? 'Quitar corazón a esta imagen' : 'Dar corazón a esta imagen';
+
+  return `
+    <div class="hearts" data-image-id="${escapeHtml(image.id)}">
+      <button
+        type="button"
+        class="heart-btn ${viewerHasHeart ? 'active' : ''}"
+        data-image-id="${escapeHtml(image.id)}"
+        aria-label="${ariaLabel}"
+        aria-pressed="${viewerHasHeart ? 'true' : 'false'}"
+      >${heartSVG(viewerHasHeart)}</button>
+      <span class="heart-count">${heartsCount}</span>
+    </div>`;
 }
 
 function buildCard(img) {
-  const rating = img.rating ?? randomRating();
+  const description = img.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
   const thumb  = img.dataUrl
     ? `<img class="card-thumb" src="${img.dataUrl}" alt="${img.artwork}" />`
     : `<div class="card-thumb"></div>`;
@@ -65,11 +80,11 @@ function buildCard(img) {
     <div class="image-card">
       ${thumb}
       <div class="card-body">
-        <div class="card-field"><strong>Nombre:</strong> ${escapeHtml(img.artwork)}</div>
+        <div class="card-field"><strong>Nombre de la obra:</strong> ${escapeHtml(img.artwork)}</div>
         <div class="card-field"><strong>Autor:</strong> ${escapeHtml(img.author)}</div>
         <div class="card-field"><strong>Fecha:</strong> ${escapeHtml(img.date)}</div>
-        <div class="stars">${starsSVG(rating)}</div>
-        <p class="card-description">Descripción: Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        ${heartHTML(img)}
+        <p class="card-description">Descripción: ${escapeHtml(description)}</p>
       </div>
     </div>`;
 }
@@ -235,10 +250,10 @@ function setupUpload() {
 
   btnUpload.addEventListener('click', async () => {
     const artworkEl = document.getElementById('inp-artwork');
-    const authorEl  = document.getElementById('inp-author');
+    const descriptionEl = document.getElementById('inp-description');
 
     let valid = true;
-    [artworkEl, authorEl].forEach(el => {
+    [artworkEl, descriptionEl].forEach(el => {
       el.classList.remove('error');
       if (!el.value.trim()) { el.classList.add('error'); valid = false; }
     });
@@ -256,10 +271,10 @@ function setupUpload() {
         body: JSON.stringify({
           ownerId: state.user?.id,
           artwork: artworkEl.value.trim(),
-          author: authorEl.value.trim(),
+          description: descriptionEl.value.trim() || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
           dataUrl: selectedDataUrl,
           date: today(),
-          rating: randomRating(),
+          rating: 0,
         }),
       });
 
@@ -279,12 +294,39 @@ function setupUpload() {
     successModal.classList.add('hidden');
     // Reset form
     document.getElementById('inp-artwork').value = '';
-    document.getElementById('inp-author').value  = '';
+    document.getElementById('inp-description').value = '';
     fileInput.value = '';
     selectedDataUrl = null;
     previewImg.classList.add('hidden');
     placeholder.classList.remove('hidden');
     await showScreen('screen-gallery');
+  });
+}
+
+function setupImageRatings() {
+  document.addEventListener('click', async event => {
+    const button = event.target.closest('.heart-btn');
+    if (!button) return;
+
+    const imageId = button.dataset.imageId;
+    if (!imageId) return;
+
+    button.disabled = true;
+    try {
+      const response = await api(`/images/${encodeURIComponent(imageId)}/heart`, {
+        method: 'POST',
+        body: JSON.stringify({ userId: state.user?.id }),
+      });
+
+      if (response.image) {
+        state.images = state.images.map(image => (image.id === response.image.id ? response.image : image));
+        renderGallery();
+      }
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      button.disabled = false;
+    }
   });
 }
 
@@ -331,6 +373,7 @@ async function init() {
   setupWelcome();
   setupUpload();
   setupAccount();
+  setupImageRatings();
   setupThemeButtons();
   setupNav();
 
