@@ -10,7 +10,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'museo.sqlite');
-const LEGACY_DB_FILE = path.join(DATA_DIR, 'db.json');
 
 let db;
 
@@ -163,75 +162,6 @@ async function getImagesForUser(userId = '') {
   );
 }
 
-async function migrateLegacyJsonIfNeeded() {
-  const migrated = await getMeta('migrated_from_json');
-  if (migrated === 'true') return;
-
-  if (!fs.existsSync(LEGACY_DB_FILE)) {
-    await setMeta('migrated_from_json', 'true');
-    return;
-  }
-
-  const raw = fs.readFileSync(LEGACY_DB_FILE, 'utf8');
-  let legacy;
-
-  try {
-    legacy = JSON.parse(raw);
-  } catch {
-    await setMeta('migrated_from_json', 'true');
-    return;
-  }
-
-  const users = Array.isArray(legacy.users) ? legacy.users : [];
-  const images = Array.isArray(legacy.images) ? legacy.images : [];
-
-  await withTransaction(async () => {
-    for (const user of users) {
-      const id = String(user.id || randomUUID());
-      const name = String(user.name || 'Usuario').trim() || 'Usuario';
-      const age = String(user.age || '').trim();
-      const course = String(user.course || '').trim();
-      const createdAt = String(user.createdAt || new Date().toISOString());
-
-      await run(
-        'INSERT OR IGNORE INTO users (id, name, age, course, created_at) VALUES (?, ?, ?, ?, ?)',
-        [id, name, age, course, createdAt]
-      );
-    }
-
-    for (const [index, image] of images.entries()) {
-      const id = String(image.id || randomUUID());
-      const artwork = String(image.artwork || '').trim();
-      const author = String(image.author || '').trim();
-      const date = String(image.date || '').trim();
-      const ownerId = String(image.ownerId || `legacy-owner-${index + 1}`);
-      const ownerName = String(image.ownerName || 'Usuario').trim() || 'Usuario';
-      const dataUrl = image.dataUrl || null;
-      const description = String(image.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.').trim();
-      const createdAt = String(image.createdAt || new Date().toISOString());
-
-      if (!artwork || !author) {
-        continue;
-      }
-
-      await ensureOwnerExists(ownerId, ownerName);
-
-      await run(
-        `INSERT OR IGNORE INTO images
-          (id, artwork, author, description, date, owner_id, owner_name, data_url, rating, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, artwork, author, description, date, ownerId, ownerName, dataUrl, 0, createdAt]
-      );
-    }
-
-    if (legacy.seeded === true) {
-      await setMeta('seeded', 'true');
-    }
-  });
-
-  await setMeta('migrated_from_json', 'true');
-}
-
 async function seedDataIfNeeded() {
   const seeded = await getMeta('seeded');
   if (seeded === 'true') return;
@@ -350,8 +280,6 @@ async function initDb() {
   await ensureImageDescriptionColumn();
   await ensureImageHeartsTable();
   await resetLegacyHeartCountsIfNeeded();
-
-  await migrateLegacyJsonIfNeeded();
   await seedDataIfNeeded();
 }
 
