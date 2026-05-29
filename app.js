@@ -6,12 +6,15 @@
 // ── API & State ───────────────────────────
 const API_BASE = '/api';
 const STORAGE_USER_ID = 'museo_user_id';
+const MODEL_URL = './my-pose-model/';
 
 const state = {
   user: null,
   images: [],
   dark:   localStorage.getItem('museo_dark') === 'true',
 };
+
+let poseModelPromise = null;
 
 async function api(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -27,6 +30,109 @@ async function api(path, options = {}) {
     throw new Error(payload.error || 'Error de comunicación con el servidor');
   }
   return payload;
+}
+
+function normalizePoseLabel(className = '') {
+  const value = className.trim().toLowerCase();
+
+  if (!value) return 'Desconocido';
+  if (value.includes('sent') || value.includes('sit')) return 'Sentado';
+  if (value.includes('acost') || value.includes('lie') || value.includes('lay') || value.includes('tumb')) return 'Acostado';
+  if (value.includes('parad') || value.includes('stand') || value.includes('de pie')) return 'Parado';
+
+  return className;
+}
+
+function buildPoseDescription(baseDescription, poseResult) {
+  const safeText = String(baseDescription || '').trim();
+  const poseLine = `Salida del modelo: ${poseResult.label} (${(poseResult.confidence * 100).toFixed(1)}%)`;
+
+  return safeText ? `${safeText}\n\n${poseLine}` : poseLine;
+}
+
+function splitPoseDescription(description = '') {
+  const text = String(description || '').trim();
+  const marker = '\n\nSalida del modelo: ';
+  const markerIndex = text.lastIndexOf(marker);
+
+  if (markerIndex === -1) {
+    return { description: text, poseLine: '' };
+  }
+
+  return {
+    description: text.slice(0, markerIndex).trim(),
+    poseLine: text.slice(markerIndex + marker.length).trim(),
+  };
+}
+
+async function loadPoseModel() {
+  if (poseModelPromise) return poseModelPromise;
+
+  poseModelPromise = (async () => {
+    if (typeof tmPose === 'undefined') {
+      throw new Error('No se cargó Teachable Machine Pose Model.');
+    }
+
+    const modelURL = `${MODEL_URL}model.json`;
+    const metadataURL = `${MODEL_URL}metadata.json`;
+    return tmPose.load(modelURL, metadataURL);
+  })();
+
+  return poseModelPromise;
+}
+
+function loadImage(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('No se pudo leer la imagen seleccionada.'));
+    image.src = dataUrl;
+  });
+}
+
+async function classifyPoseImage(dataUrl) {
+  const model = await loadPoseModel();
+  const image = await loadImage(dataUrl);
+  const size = 400;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = size;
+  canvas.height = size;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, size, size);
+
+  const scale = Math.max(size / image.width, size / image.height);
+  const width = image.width * scale;
+  const height = image.height * scale;
+  const x = (size - width) / 2;
+  const y = (size - height) / 2;
+
+  ctx.drawImage(image, x, y, width, height);
+
+  const { pose, posenetOutput } = await model.estimatePose(canvas);
+  const predictions = await model.predict(posenetOutput);
+
+  let bestIndex = 0;
+  for (let i = 1; i < predictions.length; i++) {
+    if (predictions[i].probability > predictions[bestIndex].probability) {
+      bestIndex = i;
+    }
+  }
+
+  const best = predictions[bestIndex];
+
+  if (pose) {
+    const minPartConfidence = 0.5;
+    tmPose.drawKeypoints(pose.keypoints, minPartConfidence, ctx);
+    tmPose.drawSkeleton(pose.keypoints, minPartConfidence, ctx);
+  }
+
+  return {
+    label: normalizePoseLabel(best?.className),
+    confidence: Number(best?.probability || 0),
+    processedDataUrl: canvas.toDataURL('image/png'),
+  };
 }
 
 // ── Helpers ───────────────────────────────
@@ -71,7 +177,7 @@ function heartHTML(image) {
 }
 
 function imageDetailHTML(image) {
-  const description = image.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+  const descriptionInfo = splitPoseDescription(image.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.');
   return `
     <div class="detail-preview">
       <img class="detail-image" src="${image.dataUrl}" alt="${escapeHtml(image.artwork)}" />
@@ -81,12 +187,13 @@ function imageDetailHTML(image) {
       <div class="detail-meta"><strong>Autor:</strong> ${escapeHtml(image.author)}</div>
       <div class="detail-meta"><strong>Fecha:</strong> ${escapeHtml(image.date)}</div>
       <div class="detail-hearts">${heartHTML(image)}</div>
-      <p class="detail-description">${escapeHtml(description)}</p>
+      <p class="detail-description">${escapeHtml(descriptionInfo.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.')}</p>
+      ${descriptionInfo.poseLine ? `<p class="detail-description"><strong>${escapeHtml(descriptionInfo.poseLine)}</strong></p>` : ''}
     </div>`;
 }
 
 function buildCard(img) {
-  const description = img.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+  const descriptionInfo = splitPoseDescription(img.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.');
   const thumb  = img.dataUrl
     ? `<button type="button" class="card-thumb-btn" data-image-id="${escapeHtml(img.id)}" aria-label="Ver ${escapeHtml(img.artwork)} en grande"><img class="card-thumb" src="${img.dataUrl}" alt="${img.artwork}" /></button>`
     : `<div class="card-thumb"></div>`;
@@ -99,7 +206,8 @@ function buildCard(img) {
         <div class="card-field"><strong>Autor:</strong> ${escapeHtml(img.author)}</div>
         <div class="card-field"><strong>Fecha:</strong> ${escapeHtml(img.date)}</div>
         ${heartHTML(img)}
-        <p class="card-description">Descripción: ${escapeHtml(description)}</p>
+        <p class="card-description">Descripción: ${escapeHtml(descriptionInfo.description || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.')}</p>
+        ${descriptionInfo.poseLine ? `<p class="card-description"><strong>${escapeHtml(descriptionInfo.poseLine)}</strong></p>` : ''}
       </div>
     </div>`;
 }
@@ -268,7 +376,7 @@ function setupUpload() {
     const descriptionEl = document.getElementById('inp-description');
 
     let valid = true;
-    [artworkEl, descriptionEl].forEach(el => {
+    [artworkEl].forEach(el => {
       el.classList.remove('error');
       if (!el.value.trim()) { el.classList.add('error'); valid = false; }
     });
@@ -281,13 +389,16 @@ function setupUpload() {
 
     btnUpload.disabled = true;
     try {
+      const poseResult = await classifyPoseImage(selectedDataUrl);
+      const description = buildPoseDescription(descriptionEl.value.trim(), poseResult);
+
       const response = await api('/images', {
         method: 'POST',
         body: JSON.stringify({
           ownerId: state.user?.id,
           artwork: artworkEl.value.trim(),
-          description: descriptionEl.value.trim() || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-          dataUrl: selectedDataUrl,
+          description,
+          dataUrl: poseResult.processedDataUrl,
           date: today(),
           rating: 0,
         }),
