@@ -77,6 +77,20 @@ Luego abre la app en:
 http://localhost:3000
 ```
 
+## Documentación con Docusaurus
+
+El plan de trabajo para crear la documentación está en:
+
+- `DOCUMENTACION_DOCUSAURUS.txt`
+
+Comandos mínimos para ejecutar la documentación (cuando exista `docs-site/`):
+
+```bash
+cd docs-site
+npm install
+npm run start
+```
+
 ## Ejecución con Docker
 
 ### Docker Compose

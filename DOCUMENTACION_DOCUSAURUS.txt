@@ -1,0 +1,83 @@
+PLAN DE DOCUMENTACIÓN DEL PROYECTO CON DOCUSAURUS
+
+Objetivo:
+Crear un sitio de documentación en /docs-site para documentar instalación, uso, arquitectura, API y despliegue del proyecto.
+
+Checklist accionable:
+
+- [ ] 1) Crear estructura base de Docusaurus
+      Comandos:
+      - npx create-docusaurus@latest docs-site classic
+      - cd docs-site
+      - npm install
+      Archivos/carpetas esperadas:
+      - docs-site/docusaurus.config.js
+      - docs-site/sidebars.js
+      - docs-site/docs/
+      - docs-site/src/css/custom.css
+
+- [ ] 2) Configurar datos del repositorio en docs-site/docusaurus.config.js
+      Ajustar:
+      - title: "Museo Interactivo"
+      - tagline: descripción corta del proyecto
+      - url: dominio final (GitHub Pages o dominio propio)
+      - baseUrl: "/" o "/Aplicacion-movil-para-un-museo/"
+      - organizationName: "HelloAVega"
+      - projectName: "Aplicacion-movil-para-un-museo"
+      - preset docs con ruta a sidebars.js
+
+- [ ] 3) Definir navegación en docs-site/sidebars.js
+      Crear categorías:
+      - Introducción
+      - Puesta en marcha
+      - Guía de usuario
+      - Guía técnica
+      - API
+      - Despliegue
+      - Troubleshooting
+      - Contribución
+
+- [ ] 4) Crear secciones y archivos de documentación en docs-site/docs/
+      Estructura sugerida:
+      - intro.md
+      - getting-started/requirements.md
+      - getting-started/installation.md
+      - getting-started/run-local.md
+      - getting-started/docker.md
+      - user-guide/overview.md
+      - user-guide/subir-obras.md
+      - user-guide/galeria.md
+      - user-guide/detalle-obra.md
+      - dev-guide/project-structure.md
+      - dev-guide/architecture.md
+      - dev-guide/styling.md
+      - api/endpoints.md
+      - deployment/build.md
+      - deployment/hosting.md
+      - troubleshooting.md
+      - contributing.md
+
+- [ ] 5) Documentar comandos de trabajo de la doc
+      Desde /docs-site:
+      - npm run start      (entorno local)
+      - npm run build      (build estático)
+      - npm run serve      (probar build local)
+      - npm run deploy     (si se configura deploy)
+
+- [ ] 6) Personalizar portada y tema
+      Editar:
+      - docs-site/src/pages/index.js
+      - docs-site/src/css/custom.css
+      Agregar:
+      - accesos rápidos a secciones clave
+      - identidad visual del museo
+
+- [ ] 7) Publicación (opcional)
+      Configurar despliegue en GitHub Pages (Actions) o Netlify/Vercel.
+      Verificar que url/baseUrl coincidan con el destino final.
+
+- [ ] 8) Validación final
+      - Revisar enlaces internos
+      - Revisar ortografía y consistencia de términos
+      - Confirmar que ejemplos de comandos funcionen
+      - Confirmar que la documentación cubra frontend, backend, DB y Docker
