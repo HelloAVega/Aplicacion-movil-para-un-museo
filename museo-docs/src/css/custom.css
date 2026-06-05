@@ -40,3 +40,29 @@
   background-color: #76c876;
   text-decoration: none;
 }
+
+.button--github {
+  background-color: #24292e;
+  color: #fff;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.button--github:hover {
+  background-color: #3d444d;
+}
+
+.button--azure {
+  background-color: #0078d4;
+  color: #fff;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.button--azure:hover {
+  background-color: #106ebe;
+}
