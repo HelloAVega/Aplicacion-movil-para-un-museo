@@ -19,7 +19,7 @@ const config = {
   },
 
   url: 'https://helloavega.github.io',
-  baseUrl: '/Aplicacion-movil-para-un-museo/',
+  baseUrl: '/',
 
   organizationName: 'HelloAVega',
   projectName: 'my-website',
