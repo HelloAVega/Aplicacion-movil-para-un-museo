@@ -14,6 +14,7 @@ const sidebars = {
         'guias/azure',
         'guias/variables-de-entorno',
         'guias/solucion-problemas',
+        'guias/equipo',
       ],
     },
     {
