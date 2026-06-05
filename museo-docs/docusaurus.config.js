@@ -19,7 +19,7 @@ const config = {
   },
 
   url: 'https://helloavega.github.io',
-  baseUrl: '/',
+  baseUrl: '/docs',
 
   organizationName: 'HelloAVega',
   projectName: 'my-website',
