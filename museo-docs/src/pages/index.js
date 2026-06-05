@@ -28,10 +28,11 @@ function HomepageHeader() {
             Instalar la app
           </Link>
           <a
-            className="button button--primary button--lg"
+            className="button button--play button--lg"
             href="https://museo.aprojects.dev"
             target="_blank"
             rel="noopener noreferrer">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
             Probar app
           </a>
         </div>

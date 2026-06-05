@@ -10,7 +10,7 @@ Museo Interactivo fue desarrollado por tres estudiantes de la materia Tecnologí
 
 ## Integrantes
 
-### Idel Vega
+### Antonio Vega
 Desarrollo backend, base de datos y despliegue en Azure. Se encargó de construir el servidor con Node.js y Express, diseñar las tablas en SQLite y configurar el contenedor Docker para el despliegue en Azure.
 
 ### Deimer Torres

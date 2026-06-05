@@ -28,8 +28,8 @@
 }
 
 .button--play {
-  background-color: #2e7d5e;
-  color: #fff;
+  background-color: #90EE90;
+  color: #1a1a1a;
   border: none;
   display: inline-flex;
   align-items: center;
@@ -37,6 +37,6 @@
 }
 
 .button--play:hover {
-  background-color: #29704f;
+  background-color: #76c876;
   text-decoration: none;
 }
