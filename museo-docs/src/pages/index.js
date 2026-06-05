@@ -1,4 +1,4 @@
-import clsx from 'clsx';
+﻿import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
@@ -27,6 +27,13 @@ function HomepageHeader() {
             to="/guias/instalacion">
             Instalar la app
           </Link>
+          <a
+            className="button button--primary button--lg"
+            href="https://museo.aprojects.dev"
+            target="_blank"
+            rel="noopener noreferrer">
+            Probar app
+          </a>
         </div>
       </div>
     </header>
