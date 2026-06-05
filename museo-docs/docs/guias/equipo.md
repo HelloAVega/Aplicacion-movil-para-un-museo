@@ -20,7 +20,7 @@ Diseño de la interfaz y documentación del proyecto. Se encargó del frontend, 
 Documentación y pruebas. Apoyó en la redacción de la documentación técnica y verificó el correcto funcionamiento de la aplicación en distintos dispositivos.
 
 ## Repositorio
-
+ Proyecto desarrollado en 2026.
 El código fuente del proyecto y el historial de contribuciones está disponible en GitHub:
 
 **[Ver repositorio y contribuidores](https://github.com/HelloAVega/Aplicacion-movil-para-un-museo)**
