@@ -80,5 +80,6 @@ Extraída de `metadata.json`:
 ```
 
 :::note Requisito de cámara
+
 El navegador requiere **HTTPS** o `localhost` para acceder a la cámara. En producción, asegúrate de que tu dominio tenga certificado SSL.
 :::

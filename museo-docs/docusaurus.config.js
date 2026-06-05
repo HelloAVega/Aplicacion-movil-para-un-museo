@@ -1,20 +1,30 @@
 // @ts-check
-import { themes as prismThemes } from 'prism-react-renderer';
+// `@type` JSDoc annotations allow editor autocompletion and type checking
+// (when paired with `@ts-check`).
+// There are various equivalent ways to declare your Docusaurus config.
+// See: https://docusaurus.io/docs/api/docusaurus-config
+
+import {themes as prismThemes} from 'prism-react-renderer';
+
+// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Museo Interactivo',
-  tagline: 'Documentación del proyecto — Universidad Simón Bolívar',
-  favicon: 'img/favicon.ico',
+  tagline: 'Galería digital para estudiantes y visitantes del MAMB',
+  favicon: 'img/logo-app.png',
 
-  url: 'https://HelloAVega.github.io',
-  baseUrl: '/Aplicacion-movil-para-un-museo/',
+  future: {
+    v4: true,
+  },
+
+  url: 'https://helloavega.github.io',
+  baseUrl: '/',
 
   organizationName: 'HelloAVega',
-  projectName: 'Aplicacion-movil-para-un-museo',
+  projectName: 'my-website',
 
-  onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenLinks: 'throw',
 
   i18n: {
     defaultLocale: 'es',
@@ -27,8 +37,8 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
+          routeBasePath: '/',
           sidebarPath: './sidebars.js',
-          editUrl: 'https://github.com/HelloAVega/Aplicacion-movil-para-un-museo/edit/main/',
         },
         blog: false,
         theme: {
@@ -41,33 +51,26 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: 'img/social-card.png',
+      image: 'img/docusaurus-social-card.jpg',
       colorMode: {
-        defaultMode: 'light',
-        disableSwitch: false,
         respectPrefersColorScheme: true,
       },
       navbar: {
         title: 'Museo Interactivo',
         logo: {
-          alt: 'Museo Interactivo Logo',
-          src: 'img/logo.svg',
+          alt: 'Museo Interactivo',
+          src: 'img/logo-app.png',
         },
         items: [
           {
             type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
+            sidebarId: 'docsSidebar',
             position: 'left',
             label: 'Documentación',
           },
           {
             href: 'https://github.com/HelloAVega/Aplicacion-movil-para-un-museo',
-            label: 'GitHub',
-            position: 'right',
-          },
-          {
-            href: 'https://museo.aprojects.dev',
-            label: 'Ver App',
+            label: 'Repositorio',
             position: 'right',
           },
         ],
@@ -78,40 +81,38 @@ const config = {
           {
             title: 'Documentación',
             items: [
-              { label: 'Introducción', to: '/docs/intro' },
-              { label: 'Arquitectura', to: '/docs/arquitectura/overview' },
-              { label: 'API REST', to: '/docs/api/endpoints' },
+              {label: 'Introducción', to: '/intro'},
+              {label: 'Instalación', to: '/guias/instalacion'},
+              {label: 'API REST', to: '/api/endpoints'},
+            ],
+          },
+          {
+            title: 'Arquitectura',
+            items: [
+              {label: 'Vista general', to: '/arquitectura/overview'},
+              {label: 'Frontend', to: '/arquitectura/frontend'},
+              {label: 'Base de datos', to: '/arquitectura/base-de-datos'},
             ],
           },
           {
             title: 'Proyecto',
             items: [
-              { label: 'GitHub', href: 'https://github.com/HelloAVega/Aplicacion-movil-para-un-museo' },
-              { label: 'Demo en vivo', href: 'https://museo.aprojects.dev' },
-            ],
-          },
-          {
-            title: 'Universidad Simón Bolívar',
-            items: [
-              { label: 'Ingeniería de Sistemas', href: '#' },
-              { label: 'Ingeniería de Datos e IA', href: '#' },
-              { label: 'Maestría en IA', href: '#' },
+              {
+                label: 'Universidad Simón Bolívar',
+                href: 'https://www.unisimon.edu.co',
+              },
+              {
+                label: 'Código fuente',
+                href: 'https://github.com/HelloAVega/Aplicacion-movil-para-un-museo',
+              },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Universidad Simón Bolívar — Museo Interactivo. Construido con Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Museo Interactivo — USB & MAMB. Documentación con Docusaurus.`,
       },
       prism: {
         theme: prismThemes.github,
         darkTheme: prismThemes.dracula,
-        additionalLanguages: ['bash', 'yaml', 'json', 'docker'],
-      },
-      announcementBar: {
-        id: 'live_demo',
-        content: '🎨 El Museo Interactivo ya está en vivo — <a href="https://museo.aprojects.dev" target="_blank">visita la app</a>',
-        backgroundColor: '#2e7d5e',
-        textColor: '#ffffff',
-        isCloseable: true,
       },
     }),
 };

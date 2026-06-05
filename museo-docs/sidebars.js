@@ -1,24 +1,25 @@
+// @ts-check
+
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
-  tutorialSidebar: [
-    {
-      type: 'doc',
-      id: 'intro',
-      label: '🏛️ Introducción',
-    },
+  docsSidebar: [
+    'intro',
     {
       type: 'category',
-      label: '🚀 Inicio Rápido',
-      collapsed: false,
+      label: 'Guías',
+      link: {type: 'generated-index', title: 'Guías'},
       items: [
         'guias/instalacion',
         'guias/docker',
         'guias/azure',
+        'guias/variables-de-entorno',
+        'guias/solucion-problemas',
       ],
     },
     {
       type: 'category',
-      label: '🏗️ Arquitectura',
+      label: 'Arquitectura',
+      link: {type: 'generated-index', title: 'Arquitectura'},
       items: [
         'arquitectura/overview',
         'arquitectura/frontend',
@@ -29,20 +30,9 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '📡 API REST',
-      items: [
-        'api/endpoints',
-        'api/usuarios',
-        'api/imagenes',
-      ],
-    },
-    {
-      type: 'category',
-      label: '⚙️ Configuración',
-      items: [
-        'guias/variables-de-entorno',
-        'guias/solucion-problemas',
-      ],
+      label: 'API',
+      link: {type: 'generated-index', title: 'API REST'},
+      items: ['api/endpoints', 'api/usuarios', 'api/imagenes'],
     },
   ],
 };

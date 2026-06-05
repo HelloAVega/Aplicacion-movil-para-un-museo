@@ -60,6 +60,7 @@ az containerapp create \
 ## Almacenamiento persistente
 
 :::warning Base de datos en contenedor
+
 Los contenedores en Azure son efímeros. Para que la base de datos `museo.sqlite` sobreviva reinicios, monta un **Azure Files** share en `/app/data`.
 :::
 
@@ -87,6 +88,7 @@ az containerapp storage set \
 | `NODE_ENV` | `production` | Modo de producción |
 
 :::tip Puerto
+
 Azure App Service inyecta automáticamente `WEBSITES_PORT`. Si usas App Service en lugar de Container Apps, asegúrate de que el puerto interno sea `3000`.
 :::
 

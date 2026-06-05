@@ -47,6 +47,7 @@ volumes:
 ```
 
 :::important Persistencia
+
 El volumen `museo_data` se monta en `/app/data` dentro del contenedor. Eso significa que la base de datos **no se borra** aunque el contenedor se reinicie o se reconstruya la imagen.
 :::
 

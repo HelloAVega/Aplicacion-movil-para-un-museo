@@ -62,6 +62,7 @@ http://localhost:3000
 ```
 
 :::tip Primera ejecución
+
 En el primer arranque, el servidor crea automáticamente la carpeta `data/` y el archivo `museo.sqlite`. También inserta tres imágenes de ejemplo para que la galería no aparezca vacía.
 :::
 

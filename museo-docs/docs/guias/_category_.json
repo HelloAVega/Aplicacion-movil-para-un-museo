@@ -1,0 +1,9 @@
+{
+  "label": "Guías",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "title": "Guías",
+    "description": "Instalación, despliegue y solución de problemas."
+  }
+}

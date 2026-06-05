@@ -3,33 +3,30 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
+
 import Heading from '@theme/Heading';
 import styles from './index.module.css';
 
 function HomepageHeader() {
-  const { siteConfig } = useDocusaurusContext();
+  const {siteConfig} = useDocusaurusContext();
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
-        <div className={styles.heroTag}>Universidad Simón Bolívar · Ingeniería de Sistemas &amp; IA</div>
         <Heading as="h1" className="hero__title">
-          Museo Interactivo
+          {siteConfig.title}
         </Heading>
-        <p className="hero__subtitle">
-          Galería digital donde estudiantes y visitantes suben sus obras, las comparten y exploran el arte del Caribe colombiano.
-        </p>
+        <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
-          <Link className="button button--primary button--lg" to="/docs/intro">
-            📖 Ver Documentación
+          <Link
+            className="button button--secondary button--lg"
+            to="/intro">
+            Ver documentación
           </Link>
-          <Link className="button button--secondary button--lg" href="https://museo.aprojects.dev" target="_blank">
-            🎨 Abrir la App →
+          <Link
+            className={clsx('button button--outline button--secondary button--lg', styles.secondButton)}
+            to="/guias/instalacion">
+            Instalar la app
           </Link>
-        </div>
-        <div className={styles.techStack}>
-          {['Node.js', 'Express', 'SQLite3', 'Docker', 'TensorFlow.js', 'Teachable Machine'].map(t => (
-            <span key={t} className={styles.techBadge}>{t}</span>
-          ))}
         </div>
       </div>
     </header>
@@ -37,11 +34,11 @@ function HomepageHeader() {
 }
 
 export default function Home() {
-  const { siteConfig } = useDocusaurusContext();
+  const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title="Inicio"
-      description="Documentación del Museo Interactivo — aplicación web para galerías digitales escolares">
+      title={siteConfig.title}
+      description="Documentación del Museo Interactivo — galería digital para estudiantes y visitantes del MAMB.">
       <HomepageHeader />
       <main>
         <HomepageFeatures />

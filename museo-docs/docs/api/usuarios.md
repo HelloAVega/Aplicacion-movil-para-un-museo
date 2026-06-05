@@ -82,6 +82,7 @@ Actualiza el nombre del usuario y sincroniza `owner_name` en todas sus imágenes
 ```
 
 :::note Sincronización
+
 Este endpoint usa una transacción para actualizar tanto `users.name` como `images.owner_name` de forma atómica.
 :::
 

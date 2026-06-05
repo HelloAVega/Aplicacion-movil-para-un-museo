@@ -136,6 +136,7 @@ Devuelve la imagen actualizada con los nuevos conteos:
 ```
 
 :::info Transacción atómica
+
 La operación modifica tanto `image_hearts` como `images.rating` dentro de una única transacción para garantizar consistencia.
 :::
 

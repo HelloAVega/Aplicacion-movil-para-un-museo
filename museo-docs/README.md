@@ -1,42 +1,41 @@
-# Documentación — Museo Interactivo
+# Website
 
-Documentación del proyecto construida con [Docusaurus](https://docusaurus.io/).
+This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
-## Inicio rápido
+## Installation
 
 ```bash
-npm install
-npm start
+yarn
 ```
 
-## Estructura
+## Local Development
 
+```bash
+yarn start
 ```
-museo-docs/
-├── docs/
-│   ├── intro.md                        ← Introducción
-│   ├── guias/
-│   │   ├── instalacion.md
-│   │   ├── docker.md
-│   │   ├── azure.md
-│   │   ├── variables-de-entorno.md
-│   │   └── solucion-problemas.md
-│   ├── arquitectura/
-│   │   ├── overview.md
-│   │   ├── frontend.md
-│   │   ├── backend.md
-│   │   ├── base-de-datos.md
-│   │   └── modelo-ia.md
-│   └── api/
-│       ├── endpoints.md
-│       ├── usuarios.md
-│       └── imagenes.md
-├── src/
-│   ├── css/custom.css                  ← Tema del museo 
-│   ├── pages/index.js                  ← Homepage
-│   └── components/HomepageFeatures/
-├── static/img/logo.svg
-├── docusaurus.config.js
-├── sidebars.js
-└── package.json
+
+This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+
+## Build
+
+```bash
+yarn build
 ```
+
+This command generates static content into the `build` directory and can be served using any static contents hosting service.
+
+## Deployment
+
+Using SSH:
+
+```bash
+USE_SSH=true yarn deploy
+```
+
+Not using SSH:
+
+```bash
+GIT_USER=<Your GitHub username> yarn deploy
+```
+
+If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
