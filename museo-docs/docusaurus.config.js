@@ -19,10 +19,10 @@ const config = {
   },
 
   url: 'https://helloavega.github.io',
-  baseUrl: '/docs',
+  baseUrl: '/',
 
   organizationName: 'HelloAVega',
-  projectName: 'my-website',
+  projectName: 'Aplicacion-movil-para-un-museo',
 
   onBrokenLinks: 'throw',
 
