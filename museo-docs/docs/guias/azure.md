@@ -1,102 +1,122 @@
----
+﻿---
 id: azure
 title: Despliegue en Azure
 sidebar_position: 3
-description: Publicar el Museo Interactivo en Azure usando contenedores Docker.
+description: Publicar el Museo Interactivo en Azure usando una máquina virtual Ubuntu.
 ---
 
 # Despliegue en Azure
 
-La forma más directa de publicar el proyecto en Azure es mediante una imagen de contenedor.
+El Museo Interactivo se desplegó en una máquina virtual de Azure con Ubuntu Server 24.04.
 
-## Opción recomendada: Azure Container Apps
+## Máquina virtual utilizada
 
-### 1. Construir la imagen localmente
+| Propiedad | Valor |
+|---|---|
+| Nombre del equipo | UbuntuServer |
+| Sistema operativo | Linux (Ubuntu 24.04) |
+| Arquitectura | x64 |
+| Tamaño | Standard D2ads v7 (2 vCPU, 8 GiB RAM) |
+| Dirección IP pública | 20.222.176.74 |
+| Nombre DNS | server320.japaneast.cloudapp.azure.com |
 
-```bash
-docker build -t museo-interactivo .
-```
+![Propiedades](/img/propiedades.png)
 
-### 2. Crear un Azure Container Registry (ACR)
+## Configuración de red
 
-```bash
-az acr create \
-  --resource-group mi-grupo \
-  --name museoregistry \
-  --sku Basic
-```
+Es necesario habilitar el puerto HTTPS (443) para que la aplicación sea accesible desde el navegador.
 
-### 3. Subir la imagen al registro
+![Puertos](/img/puertos.png)
 
-```bash
-az acr login --name museoregistry
+## Conexión SSH
 
-docker tag museo-interactivo museoregistry.azurecr.io/museo-interactivo:latest
-docker push museoregistry.azurecr.io/museo-interactivo:latest
-```
-
-### 4. Crear la Container App
+Para interactuar con la máquina virtual usamos SSH:
 
 ```bash
-az containerapp create \
-  --name museo-interactivo \
-  --resource-group mi-grupo \
-  --environment mi-environment \
-  --image museoregistry.azurecr.io/museo-interactivo:latest \
-  --target-port 3000 \
-  --ingress external \
-  --env-vars PORT=3000 NODE_ENV=production
+ssh -i <private-key-file-path> azureuser@20.222.176.74
 ```
 
-## Opción alternativa: Azure App Service
+## Administración con Cockpit
 
-1. Ve a **Azure Portal → App Service → Crear**.
-2. Selecciona **Publicar: Contenedor Docker**.
-3. En la pestaña **Docker**, elige **Registro privado** y apunta a tu ACR.
-4. En **Configuración → Variables de entorno**, agrega:
-   - `PORT` = `3000`
-   - `NODE_ENV` = `production`
+Para una administración más sencilla instalamos Cockpit, una interfaz web para servidores.
 
-## Almacenamiento persistente
-
-:::warning Base de datos en contenedor
-
-Los contenedores en Azure son efímeros. Para que la base de datos `museo.sqlite` sobreviva reinicios, monta un **Azure Files** share en `/app/data`.
-:::
+### Instalación
 
 ```bash
-az storage share create \
-  --account-name muestorageaccount \
-  --name museo-data
-
-az containerapp storage set \
-  --name museo-interactivo \
-  --resource-group mi-grupo \
-  --storage-name museo-files \
-  --azure-file-account-name muestorageaccount \
-  --azure-file-account-key <key> \
-  --azure-file-share-name museo-data \
-  --access-mode ReadWrite \
-  --mount-path /app/data
+sudo apt update
+sudo apt install cockpit
+sudo systemctl enable --now cockpit.socket
 ```
 
-## Variables de entorno requeridas
+![Panel Cockpit](/img/panel.png)
 
-| Variable | Valor | Descripción |
+Después de ingresar usuario y contraseña, se muestra la interfaz principal:
+
+![Panel V2](/img/panelV2.png)
+
+Desde Cockpit usamos el terminal integrado para ejecutar los comandos de despliegue:
+
+![Panel V3](/img/panelV3.png)
+
+## Pasos para el despliegue
+
+### 1. Instalar dependencias
+
+```bash
+sudo apt update
+sudo apt install docker docker-compose
+```
+
+### 2. Instalar Caddy como proxy inverso
+
+```bash
+sudo apt install caddy
+```
+
+### 3. Configurar el Caddyfile
+
+```bash
+sudo nano /etc/caddy/Caddyfile
+```
+
+Agregar la siguiente configuración:
+
+```
+museo.aprojects.dev {
+        reverse_proxy 127.0.0.1:3000
+}
+```
+
+![Caddyfile](/img/caddyfile.png)
+
+### 4. Configurar DNS
+
+Agregar un registro DNS de tipo A apuntando a la IP del servidor:
+
+| Tipo | Nombre | Valor |
 |---|---|---|
-| `PORT` | `3000` | Puerto que Azure debe exponer |
-| `NODE_ENV` | `production` | Modo de producción |
+| A | museo.aprojects.dev | 20.222.176.74 |
 
-:::tip Puerto
+![DNS V1](/img/dnsV1.png)
+![DNS V2](/img/dnsV2.png)
 
-Azure App Service inyecta automáticamente `WEBSITES_PORT`. Si usas App Service en lugar de Container Apps, asegúrate de que el puerto interno sea `3000`.
-:::
+### 5. Ejecutar la aplicación
+
+```bash
+sudo docker compose up -d
+```
+
+## Acceso a la aplicación
+
+Una vez completados los pasos anteriores, la aplicación está disponible en:
+
+```
+https://museo.aprojects.dev
+```
 
 ## Verificar el despliegue
 
-Una vez publicado, visita:
-
-```
-https://<tu-app>.azurecontainerapps.io/api/health
+```bash
+curl https://museo.aprojects.dev/api/health
 # { "ok": true, "date": "..." }
 ```
