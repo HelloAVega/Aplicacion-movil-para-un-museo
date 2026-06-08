@@ -103,26 +103,63 @@ volumes:
 
 Eso permite que la base de datos no se borre cuando el contenedor se reinicia.
 
-## Despliegue en Azure con Docker
+## Despliegue en Azure
 
-Si van a publicar el proyecto en Azure, la ruta más directa es usar una imagen de contenedor.
+El Museo Interactivo fue desplegado en una máquina virtual de Azure con Ubuntu Server 24.04 utilizando Docker Compose y Caddy como proxy inverso.
 
-Pasos generales:
+### Infraestructura utilizada
 
-1. Construir la imagen Docker.
-2. Subir la imagen a un registro de contenedores como Azure Container Registry.
-3. Crear una App Service o Container App en Azure apuntando a esa imagen.
-4. Definir la variable `PORT=3000`.
-5. Confirmar que el almacenamiento persistente siga apuntando a `/app/data`.
+| Propiedad         | Valor                                    |
+| ----------------- | ---------------------------------------- |
+| Sistema operativo | Ubuntu Server 24.04                      |
+| Arquitectura      | x64                                      |
+| Tamaño            | Standard D2ads v7 (2 vCPU, 8 GiB RAM)    |
+| Nombre DNS        | `server320.japaneast.cloudapp.azure.com` |
 
-Ejemplo local previo al despliegue:
+### Requisitos de red
+
+Es necesario habilitar el puerto **443 (HTTPS)** para permitir el acceso seguro a la aplicación desde Internet.
+
+### Pasos generales de despliegue
+
+1. Instalar Docker y Docker Compose en la máquina virtual.
+2. Instalar Caddy para actuar como proxy inverso y gestionar automáticamente los certificados HTTPS.
+3. Configurar el archivo `/etc/caddy/Caddyfile` para redirigir las solicitudes al puerto interno de la aplicación (`3000`).
+4. Configurar un registro DNS de tipo **A** apuntando al servidor.
+5. Ejecutar la aplicación mediante Docker Compose:
 
 ```bash
-docker build -t museo-interactivo .
-docker run -p 3000:3000 -v museo_data:/app/data museo-interactivo
+sudo docker compose up -d
 ```
 
-En Azure, el contenedor debe exponer el mismo puerto que usa la app dentro del contenedor, que en este caso es `3000`.
+### Configuración de Caddy
+
+```caddy
+museo.aprojects.dev {
+    reverse_proxy 127.0.0.1:3000
+}
+```
+
+### Verificación del despliegue
+
+Una vez iniciado el servicio, se puede comprobar el estado de la aplicación con:
+
+```bash
+curl https://museo.aprojects.dev/api/health
+# { "ok": true, "date": "..." }
+```
+
+### Acceso a la aplicación
+
+La aplicación queda disponible en:
+
+`https://museo.aprojects.dev`
+
+### Más información
+
+Para una guía completa de despliegue en Azure, configuración de DNS, Docker, Caddy y administración del servidor, consulte:
+
+https://documentacion.aprojects.dev/guias/azure
 
 ## Variables de entorno
 
